@@ -1,0 +1,86 @@
+accessConfig:
+  authenticationMode: API_AND_CONFIG_MAP
+addonsConfig: {}
+apiVersion: eksctl.io/v1alpha5
+cloudWatch:
+  clusterLogging: {}
+iam:
+  vpcResourceControllerPolicy: true
+  withOIDC: true
+kind: ClusterConfig
+kubernetesNetworkConfig:
+  ipFamily: IPv4
+managedNodeGroups:
+- amiFamily: AmazonLinux2023
+  desiredCapacity: 3
+  disableIMDSv1: true
+  disablePodIMDS: false
+  iam:
+    withAddonPolicies:
+      albIngress: false
+      appMesh: false
+      appMeshPreview: false
+      autoScaler: false
+      awsLoadBalancerController: true
+      certManager: false
+      cloudWatch: false
+      ebs: false
+      efs: false
+      externalDNS: true
+      fsx: false
+      imageBuilder: true
+      xRay: false
+  instanceSelector: {}
+  instanceType: t3.medium
+  labels:
+    alpha.eksctl.io/cluster-name: myeks
+    alpha.eksctl.io/nodegroup-name: ng1
+  maxSize: 3
+  minSize: 3
+  name: ng1
+  privateNetworking: false
+  releaseVersion: ""
+  securityGroups:
+    withLocal: null
+    withShared: null
+  ssh:
+    allow: true
+    publicKeyPath: /home/zerotay/.ssh/pki/pub.pub
+  tags:
+    alpha.eksctl.io/nodegroup-name: ng1
+    alpha.eksctl.io/nodegroup-type: managed
+  volumeIOPS: 3000
+  volumeSize: 30
+  volumeThroughput: 125
+  volumeType: gp3
+metadata:
+  name: myeks
+  region: ap-northeast-2
+  version: "1.31"
+privateCluster:
+  enabled: false
+  skipEndpointCreation: false
+vpc:
+  autoAllocateIPv6: false
+  cidr: 192.168.0.0/16
+  clusterEndpoints:
+    privateAccess: false
+    publicAccess: true
+  id: vpc-050e6d057445b44c9
+  manageSharedNodeSecurityGroupRules: true
+  nat:
+    gateway: Disable
+  subnets:
+    public:
+      ap-northeast-2a:
+        az: ap-northeast-2a
+        cidr: 192.168.1.0/24
+        id: subnet-04c31ee0472b97619
+      ap-northeast-2b:
+        az: ap-northeast-2b
+        cidr: 192.168.2.0/24
+        id: subnet-0683a6efe75cecf26
+      ap-northeast-2c:
+        az: ap-northeast-2c
+        cidr: 192.168.3.0/24
+        id: subnet-01160b109642e0fb1
