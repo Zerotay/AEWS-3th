@@ -1,0 +1,206 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "<<<<< EKSCTL MY EC2 >>>>>"
+        Parameters:
+          - ClusterBaseName
+          - MyInstanceType
+          - LatestAmiId
+      - Label:
+          default: "<<<<< Region AZ >>>>>"
+        Parameters:
+          - TargetRegion
+          - AvailabilityZone1
+          - AvailabilityZone2
+      - Label:
+          default: "<<<<< VPC Subnet >>>>>"
+        Parameters:
+          - VpcBlock
+          - PublicSubnet1Block
+          - PublicSubnet2Block
+          - PrivateSubnet1Block
+          - PrivateSubnet2Block
+
+Parameters:
+  ClusterBaseName:
+    Type: String
+    Default: myeks
+    AllowedPattern: "[a-zA-Z][-a-zA-Z0-9]*"
+    Description: must be a valid Allowed Pattern '[a-zA-Z][-a-zA-Z0-9]*'
+    ConstraintDescription: ClusterBaseName - must be a valid Allowed Pattern
+
+  MyInstanceType:
+    Description: Enter t2.micro, t2.small, t2.medium, t3.micro, t3.small, t3.medium. Default is t2.micro.
+    Type: String
+    Default: t3.medium
+    AllowedValues: 
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t3.micro
+      - t3.small
+      - t3.medium
+
+  LatestAmiId:
+    Description: (DO NOT CHANGE)
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+    AllowedValues:
+      - /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  TargetRegion:
+    Type: String
+    Default: ap-northeast-2
+
+  AvailabilityZone1:
+    Type: String
+    Default: ap-northeast-2a
+
+  AvailabilityZone2:
+    Type: String
+    Default: ap-northeast-2c
+
+  VpcBlock:
+    Type: String
+    Default: 192.168.0.0/16
+
+  PublicSubnet1Block:
+    Type: String
+    Default: 192.168.1.0/24
+
+  PublicSubnet2Block:
+    Type: String
+    Default: 192.168.2.0/24
+
+  PrivateSubnet1Block:
+    Type: String
+    Default: 192.168.3.0/24
+
+  PrivateSubnet2Block:
+    Type: String
+    Default: 192.168.4.0/24
+
+Resources:
+# VPC
+  EksVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcBlock
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${ClusterBaseName}-VPC
+
+# PublicSubnets
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone1
+      CidrBlock: !Ref PublicSubnet1Block
+      VpcId: !Ref EksVPC
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${ClusterBaseName}-PublicSubnet1
+        - Key: kubernetes.io/role/elb
+          Value: 1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone2
+      CidrBlock: !Ref PublicSubnet2Block
+      VpcId: !Ref EksVPC
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${ClusterBaseName}-PublicSubnet2
+        - Key: kubernetes.io/role/elb
+          Value: 1
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref EksVPC
+
+  PublicSubnetRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref EksVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ClusterBaseName}-PublicSubnetRouteTable
+
+  PublicSubnetRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicSubnetRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicSubnetRouteTable
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicSubnetRouteTable
+
+# PrivateSubnets
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone1
+      CidrBlock: !Ref PrivateSubnet1Block
+      VpcId: !Ref EksVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ClusterBaseName}-PrivateSubnet1
+        - Key: kubernetes.io/role/internal-elb
+          Value: 1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone2
+      CidrBlock: !Ref PrivateSubnet2Block
+      VpcId: !Ref EksVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ClusterBaseName}-PrivateSubnet2
+        - Key: kubernetes.io/role/internal-elb
+          Value: 1
+
+  PrivateSubnetRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref EksVPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${ClusterBaseName}-PrivateSubnetRouteTable
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateSubnetRouteTable
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateSubnetRouteTable
+
+

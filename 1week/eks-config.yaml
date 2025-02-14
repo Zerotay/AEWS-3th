@@ -1,0 +1,31 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: aews-eks
+  region: ap-northeast-2
+  version: "1.31"
+vpc:
+  id: "vpc-05f8e356fa0616959"
+  subnets:
+    public:
+      ap-northeast-2a:
+        id: "subnet-074dfae00dec0a3a5"
+      ap-northeast-2c:
+        id: "subnet-04abe639c8c534ec3"
+managedNodeGroups:
+  - name: myeks-nodegroup
+    instanceType: t3.medium
+    amiFamily: Ubuntu2004
+    subnets:
+      - "subnet-074dfae00dec0a3a5"
+      - "subnet-04abe639c8c534ec3"
+    volumeSize: 20
+    ssh:
+      allow: true
+      publicKeyPath: ../pki/pub.pub
+      # new feature for restricting SSH access to certain AWS security group IDs
+      #sourceSecurityGroupIds: ["sg-00241fbb12c607007"]
+    labels: {org: aews}
+    iam: 
+      withAddonPolicies: 
+        externalDNS: true
