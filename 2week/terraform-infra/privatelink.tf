@@ -1,12 +1,40 @@
 module "nlb" {
   source  = "terraform-aws-modules/alb/aws"
+  # version = "9.13.0"
   version = "~> 8.6"
 
   name               = local.cluster_name
   vpc_id             = module.eks_vpc.vpc_id
-  subnets            = module.eks_vpc.private_subnets_id
+  subnets            = module.eks_vpc.public_subnets_id
   internal           = true
   load_balancer_type = "network"
+  # enforce_security_group_inbound_rules_on_private_link_traffic = "off"
+  security_groups = [
+    module.eks_vpc.default_sg_id
+  ]
+
+  # listeners = {
+  #   tls-port = {
+  #     port               = 443
+  #     protocol           = "TCP"
+  #     target_group_index = 0
+  #   }
+  # }
+  # target_groups = {
+  #   eks-access-endpoint = {
+  #     name_prefix = local.cluster_name
+  #     protocol = "TCP"
+  #     port     = 443
+  #     target_type      = "ip"
+  #     health_check = {
+  #       enabled  = true
+  #       path     = "/readyz"
+  #       protocol = "HTTPS"
+  #       matcher  = "200"
+  #     }
+  #   }
+  # }
+
 
   target_groups = [{
     name             = local.cluster_name
@@ -20,6 +48,7 @@ module "nlb" {
       matcher  = "200"
     }
   }]
+
   http_tcp_listeners = [{
     port               = 443
     protocol           = "TCP"
@@ -207,6 +236,7 @@ module "delete_eni_lambda" {
   EOT
 
   environment_variables = {
+    # TARGET_GROUP_ARN = module.nlb.target_groups[0].arn
     TARGET_GROUP_ARN = module.nlb.target_group_arns[0]
     # Passing local.cluster_name in lieu of module.eks.cluster_name to avoid dependency
     EKS_CLUSTER_NAME = local.cluster_name

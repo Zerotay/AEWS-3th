@@ -133,17 +133,17 @@ module "eks" {
         description = "Allow ingress from eks VPC"
       }
     },
-    {
-      # Allow tcp/443 from the NLB IP addresses
-      for i, ip_addr in data.dns_a_record_set.nlb.addrs : "nlb_ingress_${replace(ip_addr, ".", "")}" => {
-        description = "Allow ingress from NLB"
-        type        = "ingress"
-        from_port   = 443
-        to_port     = 443
-        protocol    = "tcp"
-        cidr_blocks = ["${ip_addr}/32"]
-      }
-    }
+    # {
+    #   # Allow tcp/443 from the NLB IP addresses
+    #   for i, ip_addr in data.dns_a_record_set.nlb.addrs : "nlb_ingress_${replace(ip_addr, ".", "")}" => {
+    #     description = "Allow ingress from NLB"
+    #     type        = "ingress"
+    #     from_port   = 443
+    #     to_port     = 443
+    #     protocol    = "tcp"
+    #     cidr_blocks = ["${ip_addr}/32"]
+    #   }
+    # }
   )
   node_security_group_additional_rules  = {
     peered_vpc_ingress = {
