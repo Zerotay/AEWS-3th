@@ -57,6 +57,7 @@ resource "aws_instance" "operator" {
     region = local.region
     user_arn = local.user_arn
     kubeconfig = local.kubeconfig
+    ssh_key = tls_private_key.ssh_key.private_key_pem
   })
 
   depends_on = [

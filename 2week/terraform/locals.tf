@@ -19,5 +19,3 @@ locals {
     user_arn = local.user_arn
   })
 }
-
-

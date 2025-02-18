@@ -1,10 +1,6 @@
 output "endpoint" {
    value = module.eks.cluster_endpoint
 }
-# output "ssh_key" {
-#   value = local_file.private_key
-#   sensitive = true
-# }
 output "operator_ec2_ip" {
   value =  aws_instance.operator.public_ip
   description = "Use this for SSH"
@@ -31,9 +27,4 @@ resource "local_file" "private_key" {
   content  = tls_private_key.ssh_key.private_key_pem
   file_permission = "0400"
 }
-# resource "local_file" "publick_key" {
-#   filename = "${path.module}/eks.pem"
-#   content  = tls_private_key.ssh_key.public_key_pem
-#   file_permission = "0400"
-# }
 

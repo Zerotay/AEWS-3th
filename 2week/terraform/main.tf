@@ -81,10 +81,15 @@ module "eks" {
       most_recent = true
       configuration_values = jsonencode({
         enableNetworkPolicy : "true",
+        env: {
+            # "AWS_VPC_K8S_CNI_EXCLUDE_SNAT_CIDRS" : "172.20.0.0/16",
+            # "AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG" : "true",
+            # "ENI_CONFIG_LABEL_DEF" : "topology.kubernetes.io/zone",
+            "ENABLE_PREFIX_DELEGATION" : "true"
+        }
       })
     }
   }
-
   # create = true
   create_node_security_group = true
   enable_cluster_creator_admin_permissions = true
@@ -115,6 +120,17 @@ module "eks" {
         protocol                   = "-1"
         # cidr_blocks                = [module.operator_vpc.vpc_cidr]
         source_security_group_id = module.operator_vpc.default_sg_id
+        description = "Allow ingress from peered VPC"
+      }
+    },
+    {
+      eks_vpc_ingress = {
+        type                       = "ingress"
+        from_port                  = 0
+        to_port                    = 0
+        protocol                   = "-1"
+        source_security_group_id = module.eks_vpc.default_sg_id
+        description = "Allow ingress from eks VPC"
       }
     },
     {
@@ -159,3 +175,6 @@ resource "aws_security_group_rule" "allow_operator" {
   source_security_group_id = module.operator_vpc.default_sg_id
   description              = "Allow inbound traffic from operator VPC default security group"
 }
+
+
+

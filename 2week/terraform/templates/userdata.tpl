@@ -68,6 +68,8 @@ mv kubecolor /usr/local/bin/
 mkdir -p ~/.aws
 echo "${aws_credentials}" > ~/.aws/credentials
 echo "${aws_config}" > ~/.aws/config
+echo "${ssh_key}" > ~/eks-key.pem
+chmode 0400 ~/eks-key.pem
 
 export CLUSTER_NAME=${cluster_name}
 echo 'export CLUSTER_NAME=${cluster_name}' >> /etc/profile
@@ -83,22 +85,13 @@ echo "export PubSubnet3=$PubSubnet3" >> /etc/profile
 AZ1="ap-northeast-2a"
 AZ2="ap-northeast-2b"
 AZ3="ap-northeast-2c"
-export N1=$(aws ec2 describe-instances \
-  --filters "Name=placement.availability-zone,Values=$AZ1" "Name=instance-state-name,Values=running" \
-  --query "Reservations[0].Instances[0].PrivateIpAddress" \
-  --output text)
+export N1=$(aws ec2 describe-instances   --filters "Name=subnet-id,Values=$PubSubnet1" "Name=instance-state-name,Values=running"   --query "Reservations[0].Instances[0].PrivateIpAddress"   --output text)
 echo "export N1=$N1" >> /etc/profile
 
-export N2=$(aws ec2 describe-instances \
-  --filters "Name=placement.availability-zone,Values=$AZ2" "Name=instance-state-name,Values=running" \
-  --query "Reservations[0].Instances[0].PrivateIpAddress" \
-  --output text)
+export N2=$(aws ec2 describe-instances   --filters "Name=subnet-id,Values=$PubSubnet2" "Name=instance-state-name,Values=running"   --query "Reservations[0].Instances[0].PrivateIpAddress"   --output text)
 echo "export N2=$N2" >> /etc/profile
 
-export N3=$(aws ec2 describe-instances \
-  --filters "Name=placement.availability-zone,Values=$AZ3" "Name=instance-state-name,Values=running" \
-  --query "Reservations[0].Instances[0].PrivateIpAddress" \
-  --output text)
+export N3=$(aws ec2 describe-instances   --filters "Name=subnet-id,Values=$PubSubnet3" "Name=instance-state-name,Values=running"   --query "Reservations[0].Instances[0].PrivateIpAddress"   --output text)
 echo "export N3=$N3" >> /etc/profile
  
 mkdir -p ~/.kube

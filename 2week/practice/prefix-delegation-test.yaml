@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: prefix-delegation
+  name: prefix-delegation
+spec:
+  replicas: 30
+  selector:
+    matchLabels:
+      app: prefix-delegation
+  template:
+    metadata:
+      labels:
+        app: prefix-delegation
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+      #nodeName: ip-192-168-2-174.ap-northeast-2.compute.internal
+      nodeName: ip-192-168-1-49.ap-northeast-2.compute.internal
