@@ -85,7 +85,7 @@ module "eks" {
             # "AWS_VPC_K8S_CNI_EXCLUDE_SNAT_CIDRS" : "172.20.0.0/16",
             # "AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG" : "true",
             # "ENI_CONFIG_LABEL_DEF" : "topology.kubernetes.io/zone",
-            "ENABLE_PREFIX_DELEGATION" : "true"
+            # "ENABLE_PREFIX_DELEGATION" : "true"
         }
       })
     }
@@ -118,7 +118,6 @@ module "eks" {
         from_port                  = 0
         to_port                    = 0
         protocol                   = "-1"
-        # cidr_blocks                = [module.operator_vpc.vpc_cidr]
         source_security_group_id = module.operator_vpc.default_sg_id
         description = "Allow ingress from peered VPC"
       }
@@ -158,6 +157,14 @@ module "eks" {
   cluster_endpoint_public_access = true
   cluster_endpoint_public_access_cidrs = ["${local.my_pub_ip}/32"]
   cluster_endpoint_private_access = true
+
+  depends_on = [
+    module.eks_vpc,
+    module.nlb,
+    aws_lb_target_group.nlb,
+    module.eventbridge,
+    aws_cloudtrail.cloudtrail
+  ]
 }
 
 

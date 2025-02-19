@@ -1,28 +1,31 @@
 module "nlb" {
   source  = "terraform-aws-modules/alb/aws"
-  # version = "9.13.0"
-  version = "~> 8.6"
+  version = "9.13.0"
+  # version = "~> 8.6"
 
   name               = local.cluster_name
   vpc_id             = module.eks_vpc.vpc_id
   subnets            = module.eks_vpc.public_subnets_id
   internal           = true
   load_balancer_type = "network"
-  # enforce_security_group_inbound_rules_on_private_link_traffic = "off"
   security_groups = [
     module.eks_vpc.default_sg_id
   ]
 
+  enforce_security_group_inbound_rules_on_private_link_traffic = "off"
+  enable_deletion_protection = false
   # listeners = {
   #   tls-port = {
   #     port               = 443
   #     protocol           = "TCP"
-  #     target_group_index = 0
+  #     forward = {
+  #       target_group_key = "eks-access-endpoint"
+  #     }
   #   }
   # }
   # target_groups = {
   #   eks-access-endpoint = {
-  #     name_prefix = local.cluster_name
+  #     name = local.cluster_name
   #     protocol = "TCP"
   #     port     = 443
   #     target_type      = "ip"
@@ -36,28 +39,54 @@ module "nlb" {
   # }
 
 
-  target_groups = [{
-    name             = local.cluster_name
-    backend_protocol = "TCP"
-    backend_port     = 443
-    target_type      = "ip"
-    health_check = {
-      enabled  = true
-      path     = "/readyz"
-      protocol = "HTTPS"
-      matcher  = "200"
-    }
-  }]
+  # target_groups = [{
+  #   name             = local.cluster_name
+  #   backend_protocol = "TCP"
+  #   backend_port     = 443
+  #   target_type      = "ip"
+  #   health_check = {
+  #     enabled  = true
+  #     path     = "/readyz"
+  #     protocol = "HTTPS"
+  #     matcher  = "200"
+  #   }
+  # }]
 
-  http_tcp_listeners = [{
-    port               = 443
-    protocol           = "TCP"
-    target_group_index = 0
-  }]
+  # http_tcp_listeners = [{
+  #   port               = 443
+  #   protocol           = "TCP"
+  #   target_group_index = 0
+  # }]
 }
+
+resource "aws_lb_listener" "nlb" {
+  load_balancer_arn = module.nlb.arn
+  port              = "443"
+  protocol          = "TCP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.nlb.arn
+  }
+}
+resource "aws_lb_target_group" "nlb" {
+  name     = "${local.cluster_name}-tg"
+  port     = 443
+  protocol = "TCP"
+  target_type = "ip"
+  health_check  {
+    enabled  = true
+    path     = "/readyz"
+    protocol = "HTTPS"
+    matcher  = "200"
+  }
+  vpc_id   = module.eks_vpc.vpc_id
+}
+
+
 # domain name will be accectable only when lb created
 data "dns_a_record_set" "nlb" {
-  host = module.nlb.lb_dns_name
+  host = module.nlb.dns_name
+  # host = module.nlb.lb_dns_name
 }
 
 # VPC Endpoint Service that can be shared with other services in other VPCs.
@@ -65,7 +94,8 @@ data "dns_a_record_set" "nlb" {
 # VPC Endpoint will connect to this service to reach the cluster via AWS PrivateLink
 resource "aws_vpc_endpoint_service" "this" {
   acceptance_required        = true
-  network_load_balancer_arns = [module.nlb.lb_arn]
+  network_load_balancer_arns = [module.nlb.arn]
+  # network_load_balancer_arns = [module.nlb.lb_arn]
 }
 
 # this resource will accept the connection between endpoint and the operator client
@@ -175,7 +205,7 @@ module "create_eni_lambda" {
           "Action": [
             "elasticloadbalancing:RegisterTargets"
           ],
-          "Resource": ["${module.nlb.target_group_arns[0]}"]
+          "Resource": ["${aws_lb_target_group.nlb.arn}"]
         }
       ]
     }
@@ -183,7 +213,8 @@ module "create_eni_lambda" {
 
   # This will be used in lambda function
   environment_variables = {
-    TARGET_GROUP_ARN = module.nlb.target_group_arns[0]
+    TARGET_GROUP_ARN = aws_lb_target_group.nlb.arn
+    # TARGET_GROUP_ARN = module.nlb.target_group_arns[0]
   }
 
   allowed_triggers = {
@@ -229,15 +260,16 @@ module "delete_eni_lambda" {
           "Action": [
             "elasticloadbalancing:DeregisterTargets"
           ],
-          "Resource": ["${module.nlb.target_group_arns[0]}"]
+          "Resource": ["${aws_lb_target_group.nlb.arn}"]
         }
       ]
     }
   EOT
 
   environment_variables = {
-    # TARGET_GROUP_ARN = module.nlb.target_groups[0].arn
-    TARGET_GROUP_ARN = module.nlb.target_group_arns[0]
+    TARGET_GROUP_ARN = aws_lb_target_group.nlb.arn
+    # TARGET_GROUP_ARN = module.nlb.target_groups["eks-access-endpoint"].arn
+    # TARGET_GROUP_ARN = module.nlb.target_group_arns[0]
     # Passing local.cluster_name in lieu of module.eks.cluster_name to avoid dependency
     EKS_CLUSTER_NAME = local.cluster_name
   }
