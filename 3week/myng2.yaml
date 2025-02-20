@@ -1,0 +1,48 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: myeks
+  region: ap-northeast-2
+  version: "1.31"
+
+managedNodeGroups:
+- amiFamily: AmazonLinux2
+  desiredCapacity: 1
+  instanceType: c5d.large
+  labels:
+    alpha.eksctl.io/cluster-name: myeks
+    alpha.eksctl.io/nodegroup-name: ng2
+    disk: instancestore
+  maxPodsPerNode: 110
+  maxSize: 1
+  minSize: 1
+  name: ng2
+  ssh:
+    allow: true
+    publicKeyName: 
+  subnets:
+  - subnet-066bf2a220497b5b9
+  - subnet-0b94e028fbf90f1f2
+  - subnet-0cc49fa484ebc7040
+  tags:
+    alpha.eksctl.io/nodegroup-name: ng2
+    alpha.eksctl.io/nodegroup-type: managed
+  volumeIOPS: 3000
+  volumeSize: 30
+  volumeThroughput: 125
+  volumeType: gp3
+  preBootstrapCommands:
+    - |
+      # Install Tools
+      yum install nvme-cli links tree jq tcpdump sysstat -y
+
+      # Filesystem & Mount
+      mkfs -t xfs /dev/nvme1n1
+      mkdir /data
+      mount /dev/nvme1n1 /data
+
+      # Get disk UUID
+      uuid=$(blkid -o value -s UUID mount /dev/nvme1n1 /data) 
+
+      # Mount the disk during a reboot
+      echo /dev/nvme1n1 /data xfs defaults,noatime 0 2 >> /etc/fstab

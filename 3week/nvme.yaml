@@ -1,0 +1,15 @@
+  preBootstrapCommands:
+    - |
+      # Install Tools
+      yum install nvme-cli links tree jq tcpdump sysstat -y
+
+      # Filesystem & Mount
+      mkfs -t xfs /dev/nvme1n1
+      mkdir /data
+      mount /dev/nvme1n1 /data
+
+      # Get disk UUID
+      uuid=$(blkid -o value -s UUID mount /dev/nvme1n1 /data) 
+
+      # Mount the disk during a reboot
+      echo /dev/nvme1n1 /data xfs defaults,noatime 0 2 >> /etc/fstab
