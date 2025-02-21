@@ -72,18 +72,18 @@ module "eks" {
     kube-proxy = {
       most_recent = true
     }
-    vpc-cni = {
-      most_recent = true
-      configuration_values = jsonencode({
-        enableNetworkPolicy : "true",
-        env: {
-            # "AWS_VPC_K8S_CNI_EXCLUDE_SNAT_CIDRS" : "172.20.0.0/16",
-            # "AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG" : "true",
-            # "ENI_CONFIG_LABEL_DEF" : "topology.kubernetes.io/zone",
-            # "ENABLE_PREFIX_DELEGATION" : "true"
-        }
-      })
-    }
+    # vpc-cni = {
+    #   most_recent = true
+    #   configuration_values = jsonencode({
+    #     enableNetworkPolicy : "true",
+    #     env: {
+    #         # "AWS_VPC_K8S_CNI_EXCLUDE_SNAT_CIDRS" : "172.20.0.0/16",
+    #         # "AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG" : "true",
+    #         # "ENI_CONFIG_LABEL_DEF" : "topology.kubernetes.io/zone",
+    #         # "ENABLE_PREFIX_DELEGATION" : "true"
+    #     }
+    #   })
+    # }
   }
   # create = true
   create_node_security_group = true

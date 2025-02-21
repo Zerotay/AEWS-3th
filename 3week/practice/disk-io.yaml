@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: test
+  template:
+    metadata:
+      labels:
+        app: test
+    spec:
+      terminationGracePeriodSeconds: 3
+      nodeSelector:
+        disk: instance_store
+      containers:
+      - image: centos
+        name: centos
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do echo $(date -u) >> out.txt; done"]

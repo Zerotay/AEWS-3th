@@ -1,0 +1,8 @@
+secretGenerator:
+- name: mysql-pass
+  literals:
+  - password=1234
+resources:
+  #- mysql-dep.yaml
+  - mysql-dep-snapshot.yaml
+  - wd-dep.yaml

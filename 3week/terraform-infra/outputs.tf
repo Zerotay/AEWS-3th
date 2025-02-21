@@ -1,13 +1,8 @@
 output "endpoint" {
    value = module.eks.cluster_endpoint
 }
-output "operator_ec2_ip" {
-  value =  aws_instance.operator.public_ip
-  description = "Use this for SSH"
-}
-output "operator_ec2_id" {
-  value =  aws_instance.operator.id
-  description = "Use this for SSM"
+output "efs_id" {
+  value = aws_efs_file_system.efs.id
 }
 output "ssh_command" {
   value =  "ssh -i ${local_file.private_key.filename} ec2-user@${aws_instance.operator.public_ip}"

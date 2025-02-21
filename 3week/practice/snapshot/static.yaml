@@ -1,0 +1,22 @@
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotContent
+metadata:
+  name: static-volumesnapshot-content
+spec:
+  deletionPolicy: Delete
+  driver: ebs.csi.aws.com
+  source:
+    snapshotHandle: snap-08601e327de7f4464
+  sourceVolumeMode: Filesystem
+  volumeSnapshotClassName: csi-aws-vsc
+  volumeSnapshotRef:
+    name: recovered-snapshot
+    namespace: default
+---
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: recovered-snapshot
+spec:
+  source:
+    volumeSnapshotContentName: static-volumesnapshot-content
