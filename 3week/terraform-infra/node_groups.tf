@@ -69,17 +69,10 @@ module "mng_instance_store" {
   # }
   # disk_size = 100
 
-  enable_bootstrap_user_data = false
-  # pre_bootstrap_user_data = <<-EOT
-  #   #!/bin/bash
-  #   echo eseses
-  #   yum install nvme-cli links tree tcpdump sysstat ipvsadm ipset bind-utils htop -y
-  #   mkfs -t xfs /dev/nvme1n1
-  #   systemctl stop containerd
-  #   mount /dev/nvme1n1 /run/containerd
-  #   systemctl start containerd
-  #   echo /dev/nvme1n1 /run/containerd xfs defaults,noatime 0 2 >> /etc/fstab
-  # EOT
+  enable_bootstrap_user_data = true
+  pre_bootstrap_user_data = <<-EOT
+    #!/bin/bash
+  EOT
   cloudinit_pre_nodeadm = [
     {
       content_type = "multipart/mixed; boundary=\"BOUNDARY\""
@@ -101,13 +94,12 @@ module "mng_instance_store" {
         yum install nvme-cli links tree tcpdump sysstat ipvsadm ipset bind-utils htop -y
         mkfs -t xfs /dev/nvme1n1
         systemctl stop containerd
-        # rm -rf /run/containerd/*
-        # mkdir -p /run/containerd
-        # mount /dev/nvme1n1 /run/containerd
-        # echo "/dev/nvme1n1 /run/containerd xfs defaults,noatime 0 2" >> /etc/fstab
+        mkdir -p /cache
+        cp -r /var/lib/containerd /cache
         rm -rf /var/lib/containerd/*
         mkdir -p /var/lib/containerd
         mount /dev/nvme1n1 /var/lib/containerd
+        cp -r /cache/containerd /var/lib
         echo "/dev/nvme1n1 /var/lib/containerd xfs defaults,noatime 0 2" >> /etc/fstab
         systemctl start containerd
 

@@ -104,4 +104,12 @@ set sw=2
 syntax on
 EOF
 
+mkdir -p ~/.ssh
+cat <<EOF >> ~/.ssh/config
+Host *
+    User ec2-user
+    Port 22
+    IdentityFile ~/eks-key.pem
+EOF
+
 rm  -f *.zip *.gz

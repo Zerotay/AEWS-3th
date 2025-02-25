@@ -1,0 +1,13 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap # 엑세스엔드포인트 모드. 다른 것 불가능
+  fileSystemId: asdf
+  directoryPerms: "700"
+  basePath: "/dynamic_provisioning" # 해당 볼륨의 어디를 활용할 건지
+  subPathPattern: "${.PVC.namespace}/${.PVC.name}" # optional
+  ensureUniqueDirectory: "true" # 알아서 디렉 이름이 고유하도록 uuid 붙이는 설정
+  reuseAccessPoint: "false" # optional
