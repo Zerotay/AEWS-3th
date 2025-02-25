@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2025-02-25T04:32:19Z"
+  labels:
+    run: test
+  name: test
+  namespace: default
+  resourceVersion: "61883"
+  uid: 6be4dd6d-6bd5-403a-9d64-4373052d854a
+spec:
+  containers:
+  - args:
+    - zsh
+    image: nicolaka/netshoot
+    imagePullPolicy: Always
+    name: test
+    resources: {}
+    stdin: true
+    stdinOnce: true
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    tty: true
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-fbjlt
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: ip-192-168-1-101.ap-northeast-2.compute.internal
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-fbjlt
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-25T04:32:35Z"
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-25T04:32:19Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-25T04:43:34Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-25T04:43:34Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-25T04:32:19Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://fcbd921351944d2166d337fc91c7343b06d42e3a20569e24b8f2d304c6deae4a
+    image: docker.io/nicolaka/netshoot:latest
+    imageID: docker.io/nicolaka/netshoot@sha256:a20c2531bf35436ed3766cd6cfe89d352b050ccc4d7005ce6400adf97503da1b
+    lastState:
+      terminated:
+        containerID: containerd://6b5314a3fee5dc15c2d8acd7b66ea095a55629d0c761dda714e99b269b7aafc6
+        exitCode: 0
+        finishedAt: "2025-02-25T04:43:32Z"
+        reason: Completed
+        startedAt: "2025-02-25T04:32:34Z"
+    name: test
+    ready: true
+    restartCount: 1
+    started: true
+    state:
+      running:
+        startedAt: "2025-02-25T04:43:34Z"
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-fbjlt
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 192.168.1.101
+  hostIPs:
+  - ip: 192.168.1.101
+  phase: Running
+  podIP: 192.168.1.50
+  podIPs:
+  - ip: 192.168.1.50
+  qosClass: BestEffort
+  startTime: "2025-02-25T04:32:19Z"
